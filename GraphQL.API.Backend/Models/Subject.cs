@@ -1,4 +1,4 @@
-﻿namespace GraphQL.API.Backend.Schema
+﻿namespace GraphQL.API.Backend.Models
 {
     public enum Subject
     {

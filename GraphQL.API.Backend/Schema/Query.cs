@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using GraphQL.API.Backend.Models;
 
 namespace GraphQL.API.Backend.Schema
 {
@@ -32,8 +33,6 @@ namespace GraphQL.API.Backend.Schema
 
         public IEnumerable<CourseType> GetCourses()
         {
-            
-
             var courses = _courseFaker.Generate(5);
 
             return courses;
