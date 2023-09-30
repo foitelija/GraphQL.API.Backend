@@ -1,3 +1,5 @@
+using GraphQL.API.Backend.Interfaces;
+using GraphQL.API.Backend.Repositories;
 using GraphQL.API.Backend.Schema;
 using GraphQL.API.Backend.Services;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +12,8 @@ builder.Services.AddGraphQLServer()
     .AddMutationType<Mutation>()
     .AddSubscriptionType<Subscription>()
 .AddInMemorySubscriptions();
+
+builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
 
 builder.Services.AddPooledDbContextFactory<SchoolDbContext>(options =>
 {
