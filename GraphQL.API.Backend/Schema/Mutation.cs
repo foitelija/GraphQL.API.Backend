@@ -1,4 +1,5 @@
 ﻿using GraphQL.API.Backend.Models;
+using HotChocolate.Subscriptions;
 
 namespace GraphQL.API.Backend.Schema
 {
@@ -11,9 +12,9 @@ namespace GraphQL.API.Backend.Schema
                 _courses = new List<CourseResult>();
         }
 
-        public CourseResult CreateCourse(CourseInputType courseInput)
+        public async Task<CourseResult> CreateCourse(CourseInputType courseInput, [Service] ITopicEventSender topicEventSender)
         {
-            var courseType = new CourseResult()
+            var course = new CourseResult()
             {
                 Id = Guid.NewGuid(),
                 Name = courseInput.Name,
@@ -21,12 +22,13 @@ namespace GraphQL.API.Backend.Schema
                 InstructorId = courseInput.InstructorId,
             };
 
-            _courses.Add(courseType);
+            _courses.Add(course);
+            await topicEventSender.SendAsync(nameof(Subscription.CourseCreated), course);
 
-            return courseType;
+            return course;
         }
 
-        public CourseResult UpdateCourse(Guid id, CourseInputType courseInput)
+        public async Task<CourseResult> UpdateCourse(Guid id, CourseInputType courseInput, [Service] ITopicEventSender topicEventSender)
         {
             var course = _courses.FirstOrDefault(c=>c.Id == id);
 
@@ -39,6 +41,9 @@ namespace GraphQL.API.Backend.Schema
             course.Subject = courseInput.Subject;
             course.InstructorId = courseInput.InstructorId;
 
+            string updateCourseTopic = $"{course.Id}_{nameof(Subscription.CourseUpdated)}";
+            await topicEventSender.SendAsync(updateCourseTopic, course);
+            
             return course;
         }
 
