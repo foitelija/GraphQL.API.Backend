@@ -21,13 +21,7 @@ namespace GraphQL.API.Backend.Schema
                 Id = c.Id,
                 Name = c.Name,
                 Subject = c.Subject,
-                Instructor = new InstructorType()
-                {
-                    Id = c.Instructor.Id,
-                    FirstName = c.Instructor.FirstName,
-                    LastName = c.Instructor.LastName,
-                    Salary = c.Instructor.Salary,
-                }
+                InstructorId = c.InstructorId,
             });
         }
 
@@ -41,13 +35,7 @@ namespace GraphQL.API.Backend.Schema
                 Id = course.Id,
                 Name = course.Name,
                 Subject = course.Subject,
-                Instructor = new InstructorType()
-                {
-                    Id = course.Instructor.Id,
-                    FirstName = course.Instructor.FirstName,
-                    LastName = course.Instructor.LastName,
-                    Salary = course.Instructor.Salary,
-                }
+                InstructorId = course.InstructorId,
             };
         }
     }

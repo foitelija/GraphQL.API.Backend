@@ -55,10 +55,7 @@ namespace GraphQL.API.Backend.Repositories
         {
             using (SchoolDbContext context = _context.CreateDbContext())
             {
-                return await context.Courses
-                    .Include(c=>c.Instructor)
-                    .Include(c=>c.Students)
-                    .ToListAsync();
+                return await context.Courses.ToListAsync();
             }
         }
 
@@ -66,10 +63,7 @@ namespace GraphQL.API.Backend.Repositories
         {
             using (SchoolDbContext context = _context.CreateDbContext())
             {
-                return await context.Courses
-                    .Include(c=>c.Instructor)
-                    .Include(c => c.Students)
-                    .FirstOrDefaultAsync(c=>c.Id == id);
+                return await context.Courses.FirstOrDefaultAsync(c=>c.Id == id);
             }
         }
     }

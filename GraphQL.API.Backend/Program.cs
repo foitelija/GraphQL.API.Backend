@@ -1,3 +1,4 @@
+using GraphQL.API.Backend.DataLoaders;
 using GraphQL.API.Backend.Interfaces;
 using GraphQL.API.Backend.Repositories;
 using GraphQL.API.Backend.Schema;
@@ -14,6 +15,8 @@ builder.Services.AddGraphQLServer()
 .AddInMemorySubscriptions();
 
 builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
+builder.Services.AddScoped<IInstructorsRepository, InstructorsRepository>();
+builder.Services.AddScoped<InstructorDataLoader>();
 
 builder.Services.AddPooledDbContextFactory<SchoolDbContext>(options =>
 {
