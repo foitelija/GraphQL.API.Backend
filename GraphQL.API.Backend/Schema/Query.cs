@@ -1,9 +1,11 @@
-﻿using Bogus;
+﻿using FirebaseAdminAuthentication.DependencyInjection.Models;
 using GraphQL.API.Backend.Filters;
 using GraphQL.API.Backend.Interfaces;
 using GraphQL.API.Backend.Models;
 using GraphQL.API.Backend.Services;
 using GraphQL.API.Backend.Sorters;
+using HotChocolate.Authorization;
+using System.Security.Claims;
 
 namespace GraphQL.API.Backend.Schema
 {
@@ -16,8 +18,13 @@ namespace GraphQL.API.Backend.Schema
             _coursesRepository = coursesRepository;
         }
 
-        public async Task<IEnumerable<CourseType>> GetCoursesAsync()
+        [Authorize]
+        public async Task<IEnumerable<CourseType>> GetCoursesAsync(ClaimsPrincipal claimsPrincipal)
         {
+            var userId = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.ID);
+            var email = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.EMAIL);
+            var username = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.USERNAME);
+
             var courses = await _coursesRepository.GetAllCourseAsync();
             return courses.Select(c => new CourseType()
             {
