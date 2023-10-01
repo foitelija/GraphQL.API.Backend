@@ -3,6 +3,7 @@ using GraphQL.API.Backend.Filters;
 using GraphQL.API.Backend.Interfaces;
 using GraphQL.API.Backend.Models;
 using GraphQL.API.Backend.Services;
+using GraphQL.API.Backend.Sorters;
 
 namespace GraphQL.API.Backend.Schema
 {
@@ -30,6 +31,7 @@ namespace GraphQL.API.Backend.Schema
         [UseDbContext(typeof(SchoolDbContext))]
         [UseOffsetPaging(IncludeTotalCount = true, DefaultPageSize = 10)]
         [UseFiltering(typeof(CourseFilterType))]
+        [UseSorting(typeof(CourseSortType))]
         public  IQueryable<CourseType> GetPaginatedCoursesAsync([ScopedService] SchoolDbContext context)
         {
             return context.Courses.Select(c => new CourseType()

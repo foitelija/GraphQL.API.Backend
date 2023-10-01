@@ -13,6 +13,7 @@ builder.Services.AddGraphQLServer()
     .AddMutationType<Mutation>()
     .AddSubscriptionType<Subscription>()
     .AddFiltering()
+    .AddSorting()
 .AddInMemorySubscriptions();
 
 builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
