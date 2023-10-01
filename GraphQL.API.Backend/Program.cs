@@ -14,6 +14,7 @@ builder.Services.AddGraphQLServer()
     .AddSubscriptionType<Subscription>()
     .AddFiltering()
     .AddSorting()
+    .AddProjections()
 .AddInMemorySubscriptions();
 
 builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();

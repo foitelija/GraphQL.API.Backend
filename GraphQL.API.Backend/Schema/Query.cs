@@ -30,11 +30,12 @@ namespace GraphQL.API.Backend.Schema
 
         [UseDbContext(typeof(SchoolDbContext))]
         [UseOffsetPaging(IncludeTotalCount = true, DefaultPageSize = 10)]
+        [UseProjection]
         [UseFiltering(typeof(CourseFilterType))]
         [UseSorting(typeof(CourseSortType))]
-        public  IQueryable<CourseType> GetPaginatedCoursesAsync([ScopedService] SchoolDbContext context)
+        public IQueryable<CourseType> GetPaginatedCoursesAsync([ScopedService] SchoolDbContext repository)
         {
-            return context.Courses.Select(c => new CourseType()
+            return repository.Courses.Select(c => new CourseType()
             {
                 Id = c.Id,
                 Name = c.Name,
