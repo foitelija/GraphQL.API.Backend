@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using GraphQL.API.Backend.Filters;
 using GraphQL.API.Backend.Interfaces;
 using GraphQL.API.Backend.Models;
 using GraphQL.API.Backend.Services;
@@ -14,7 +15,6 @@ namespace GraphQL.API.Backend.Schema
             _coursesRepository = coursesRepository;
         }
 
-        [UseOffsetPaging(IncludeTotalCount = true, DefaultPageSize = 10)]
         public async Task<IEnumerable<CourseType>> GetCoursesAsync()
         {
             var courses = await _coursesRepository.GetAllCourseAsync();
@@ -29,6 +29,7 @@ namespace GraphQL.API.Backend.Schema
 
         [UseDbContext(typeof(SchoolDbContext))]
         [UseOffsetPaging(IncludeTotalCount = true, DefaultPageSize = 10)]
+        [UseFiltering(typeof(CourseFilterType))]
         public  IQueryable<CourseType> GetPaginatedCoursesAsync([ScopedService] SchoolDbContext context)
         {
             return context.Courses.Select(c => new CourseType()
