@@ -1,7 +1,9 @@
-﻿using FirebaseAdminAuthentication.DependencyInjection.Models;
+﻿using AppAny.HotChocolate.FluentValidation;
+using FirebaseAdminAuthentication.DependencyInjection.Models;
 using GraphQL.API.Backend.DTOs;
 using GraphQL.API.Backend.Interfaces;
 using GraphQL.API.Backend.Models;
+using GraphQL.API.Backend.Validators;
 using HotChocolate.Authorization;
 using HotChocolate.Subscriptions;
 using System.Security.Claims;
@@ -19,9 +21,11 @@ namespace GraphQL.API.Backend.Schema
             _coursesRepository = coursesRepository;
         }
 
-        [Authorize]
-        public async Task<CourseResult> CreateCourse(CourseInputType courseInput, [Service] ITopicEventSender topicEventSender, ClaimsPrincipal claimsPrincipal)
+        //[Authorize]
+        public async Task<CourseResult> CreateCourse([UseFluentValidation, UseValidator<CourseTypeInputValidator>]CourseInputType courseInput, [Service] ITopicEventSender topicEventSender, ClaimsPrincipal claimsPrincipal)
         {
+            //await Validate(courseInput); - мануальная валидация, есть пакет для этого - AppAny.HotChocolate.FluentValidation 
+
             var courseDTO = new CourseDTO()
             {
                 Name = courseInput.Name,
@@ -45,9 +49,14 @@ namespace GraphQL.API.Backend.Schema
             return course;
         }
 
+        
+
         [Authorize]
         public async Task<CourseResult> UpdateCourse(Guid id, CourseInputType courseInput, [Service] ITopicEventSender topicEventSender, ClaimsPrincipal claimsPrincipal)
         {
+
+            //await Validate(courseInput);
+
             var currentCourseDto = await _coursesRepository.GetCourseByIdAsync(id);
 
             if(currentCourseDto == null)
@@ -93,6 +102,19 @@ namespace GraphQL.API.Backend.Schema
             catch (Exception)
             {
                 return false;
+            }
+        }
+
+
+        private async Task Validate(CourseInputType courseInput)
+        {
+            var validation = new CourseTypeInputValidator();
+            
+            var validationResult = await validation.ValidateAsync(courseInput);
+
+            if (!validationResult.IsValid)
+            {
+                throw new GraphQLException("Ошибка валидации данных");
             }
         }
     }

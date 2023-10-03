@@ -1,6 +1,8 @@
+using AppAny.HotChocolate.FluentValidation;
 using FirebaseAdmin;
 using FirebaseAdminAuthentication.DependencyInjection.Extensions;
 using FirebaseAdminAuthentication.DependencyInjection.Models;
+using FluentValidation.AspNetCore;
 using Google.Apis.Auth.OAuth2;
 using GraphQL.API.Backend.DataLoaders;
 using GraphQL.API.Backend.Interfaces;
@@ -8,10 +10,14 @@ using GraphQL.API.Backend.Models;
 using GraphQL.API.Backend.Repositories;
 using GraphQL.API.Backend.Schema;
 using GraphQL.API.Backend.Services;
+using GraphQL.API.Backend.Validators;
 using Microsoft.EntityFrameworkCore;
 using Path = System.IO.Path;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddSingleton<CourseTypeInputValidator>(); //- как вариант использовать это, если через конструктор делаю инжект класса валидации "CourseTypeInputValidator". Если использую AppAny.HotChocolate.FluentValidation нужно регать в DI !
 
 builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
@@ -25,6 +31,10 @@ builder.Services.AddGraphQLServer()
     .AddSorting()
     .AddProjections()
     .AddAuthorization()
+    .AddFluentValidation(options =>
+    {
+        options.UseDefaultErrorMapper();
+    }) // Пакет для автоматической валидации данных
 .AddInMemorySubscriptions();
 builder.Services.AddSingleton(FirebaseApp.Create(new AppOptions
 {
