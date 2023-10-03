@@ -1,5 +1,6 @@
 using FirebaseAdmin;
 using FirebaseAdminAuthentication.DependencyInjection.Extensions;
+using FirebaseAdminAuthentication.DependencyInjection.Models;
 using Google.Apis.Auth.OAuth2;
 using GraphQL.API.Backend.DataLoaders;
 using GraphQL.API.Backend.Interfaces;
@@ -25,6 +26,9 @@ builder.Services.AddSingleton(FirebaseApp.Create(new AppOptions
     Credential = GoogleCredential.FromFile(Path.Combine(Directory.GetCurrentDirectory(), "firebase-config.json"))
 }));
 builder.Services.AddFirebaseAuthentication();
+builder.Services.AddAuthorization(
+    o=> o.AddPolicy("IsAdmin",
+    p => p.RequireClaim(FirebaseUserClaimType.EMAIL, "foitelija@gmail.com")));
 
 builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
 builder.Services.AddScoped<IInstructorsRepository, InstructorsRepository>();

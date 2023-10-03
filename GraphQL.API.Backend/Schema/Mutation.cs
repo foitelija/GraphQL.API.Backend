@@ -1,7 +1,10 @@
-﻿using GraphQL.API.Backend.DTOs;
+﻿using FirebaseAdminAuthentication.DependencyInjection.Models;
+using GraphQL.API.Backend.DTOs;
 using GraphQL.API.Backend.Interfaces;
 using GraphQL.API.Backend.Models;
+using HotChocolate.Authorization;
 using HotChocolate.Subscriptions;
+using System.Security.Claims;
 
 namespace GraphQL.API.Backend.Schema
 {
@@ -16,13 +19,15 @@ namespace GraphQL.API.Backend.Schema
             _coursesRepository = coursesRepository;
         }
 
-        public async Task<CourseResult> CreateCourse(CourseInputType courseInput, [Service] ITopicEventSender topicEventSender)
+        [Authorize]
+        public async Task<CourseResult> CreateCourse(CourseInputType courseInput, [Service] ITopicEventSender topicEventSender, ClaimsPrincipal claimsPrincipal)
         {
             var courseDTO = new CourseDTO()
             {
                 Name = courseInput.Name,
                 Subject = courseInput.Subject,
-                InstructorId = courseInput.InstructorId
+                InstructorId = courseInput.InstructorId,
+                CreatorId = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.USERNAME)
             };
 
             courseDTO = await _coursesRepository.CreateCourseAsync(courseDTO);
@@ -40,25 +45,36 @@ namespace GraphQL.API.Backend.Schema
             return course;
         }
 
-        public async Task<CourseResult> UpdateCourse(Guid id, CourseInputType courseInput, [Service] ITopicEventSender topicEventSender)
+        [Authorize]
+        public async Task<CourseResult> UpdateCourse(Guid id, CourseInputType courseInput, [Service] ITopicEventSender topicEventSender, ClaimsPrincipal claimsPrincipal)
         {
-            var courseDTO = new CourseDTO()
-            {
-                Id = id,
-                Name = courseInput.Name,
-                Subject = courseInput.Subject,
-                InstructorId = courseInput.InstructorId
-            };
+            var currentCourseDto = await _coursesRepository.GetCourseByIdAsync(id);
 
-            courseDTO = await _coursesRepository.UpdateCourseAsync(courseDTO);
+            if(currentCourseDto == null)
+            {
+                throw new GraphQLException(new Error("Курс не найден", "COURSE_NOT_FOUND"));
+            }
+
+            if(currentCourseDto.CreatorId != claimsPrincipal.FindFirstValue(FirebaseUserClaimType.ID))
+            {
+                throw new GraphQLException(new Error("Не достаточно прав для обновления данного курса", "INVALID_PERMISSION"));
+            }
+
+
+            currentCourseDto.Name = courseInput.Name;
+            currentCourseDto.Subject = courseInput.Subject;
+            currentCourseDto.InstructorId = courseInput.InstructorId;
+
+
+            currentCourseDto = await _coursesRepository.UpdateCourseAsync(currentCourseDto);
 
 
             var course = new CourseResult()
             {
-                Id = courseDTO.Id,
-                Name = courseDTO.Name,
-                Subject = courseDTO.Subject,
-                InstructorId = courseDTO.InstructorId,  
+                Id = currentCourseDto.Id,
+                Name = currentCourseDto.Name,
+                Subject = currentCourseDto.Subject,
+                InstructorId = currentCourseDto.InstructorId,  
             };
 
             string updateCourseTopic = $"{course.Id}_{nameof(Subscription.CourseUpdated)}";
@@ -67,6 +83,7 @@ namespace GraphQL.API.Backend.Schema
             return course;
         }
 
+        [Authorize(Policy = "IsAdmin")]
         public async Task<bool> DeleteCourse(Guid id)
         {
             try
