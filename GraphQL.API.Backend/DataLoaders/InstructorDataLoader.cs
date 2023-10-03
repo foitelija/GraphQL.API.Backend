@@ -6,8 +6,13 @@ namespace GraphQL.API.Backend.DataLoaders
     public class InstructorDataLoader : BatchDataLoader<Guid, InstructorDTO>
     {
         private readonly IInstructorsRepository _instructorsRepository;
+        private static readonly int MAX_FIREBASE_USERS_BATCH_SIZE = 100;
 
-        public InstructorDataLoader(IBatchScheduler batchScheduler, IInstructorsRepository instructorsRepository, DataLoaderOptions? options = null) : base(batchScheduler, options)
+        public InstructorDataLoader(IBatchScheduler batchScheduler, IInstructorsRepository instructorsRepository)
+            : base(batchScheduler, new DataLoaderOptions()
+            {
+                MaxBatchSize = MAX_FIREBASE_USERS_BATCH_SIZE
+            })
         {
             _instructorsRepository = instructorsRepository;
         }

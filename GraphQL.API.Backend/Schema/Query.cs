@@ -19,7 +19,7 @@ namespace GraphQL.API.Backend.Schema
         }
 
         [Authorize]
-        public async Task<IEnumerable<CourseType>> GetCoursesAsync(ClaimsPrincipal claimsPrincipal)
+        public async Task<IEnumerable<CourseType>> GetCoursesAsyncOld(ClaimsPrincipal claimsPrincipal)
         {
             var userId = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.ID);
             var email = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.EMAIL);
@@ -40,7 +40,7 @@ namespace GraphQL.API.Backend.Schema
         [UseProjection]
         [UseFiltering(typeof(CourseFilterType))]
         [UseSorting(typeof(CourseSortType))]
-        public IQueryable<CourseType> GetPaginatedCoursesAsync([ScopedService] SchoolDbContext repository)
+        public IQueryable<CourseType> GetCoursesAsync([ScopedService] SchoolDbContext repository)
         {
             return repository.Courses.Select(c => new CourseType()
             {
@@ -48,6 +48,7 @@ namespace GraphQL.API.Backend.Schema
                 Name = c.Name,
                 Subject = c.Subject,
                 InstructorId = c.InstructorId,
+                CreatorId = c.CreatorId,
             });
         }
 
@@ -62,6 +63,8 @@ namespace GraphQL.API.Backend.Schema
                 Name = course.Name,
                 Subject = course.Subject,
                 InstructorId = course.InstructorId,
+                CreatorId = course.CreatorId,
+
             };
         }
     }
