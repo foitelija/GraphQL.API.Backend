@@ -4,7 +4,7 @@ using GraphQL.API.Backend.Interfaces;
 
 namespace GraphQL.API.Backend.Models
 {
-    public class CourseType
+    public class CourseType : ISearchResultType
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

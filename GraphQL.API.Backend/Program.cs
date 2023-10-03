@@ -4,6 +4,7 @@ using FirebaseAdminAuthentication.DependencyInjection.Models;
 using Google.Apis.Auth.OAuth2;
 using GraphQL.API.Backend.DataLoaders;
 using GraphQL.API.Backend.Interfaces;
+using GraphQL.API.Backend.Models;
 using GraphQL.API.Backend.Repositories;
 using GraphQL.API.Backend.Schema;
 using GraphQL.API.Backend.Services;
@@ -16,7 +17,11 @@ builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddSubscriptionType<Subscription>()
+    .AddType<CourseType>()
+    .AddType<InstructorType>()
     .AddFiltering()
+    .AddTypeExtension<CourseQuery>()
+    .AddTypeExtension<InstructorQuery>()
     .AddSorting()
     .AddProjections()
     .AddAuthorization()

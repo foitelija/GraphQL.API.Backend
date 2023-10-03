@@ -5,6 +5,8 @@ using GraphQL.API.Backend.Models;
 using GraphQL.API.Backend.Services;
 using GraphQL.API.Backend.Sorters;
 using HotChocolate.Authorization;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 
 namespace GraphQL.API.Backend.Schema
@@ -18,54 +20,34 @@ namespace GraphQL.API.Backend.Schema
             _coursesRepository = coursesRepository;
         }
 
-        [Authorize]
-        public async Task<IEnumerable<CourseType>> GetCoursesAsyncOld(ClaimsPrincipal claimsPrincipal)
-        {
-            var userId = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.ID);
-            var email = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.EMAIL);
-            var username = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.USERNAME);
-
-            var courses = await _coursesRepository.GetAllCourseAsync();
-            return courses.Select(c => new CourseType()
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Subject = c.Subject,
-                InstructorId = c.InstructorId,
-            });
-        }
-
         [UseDbContext(typeof(SchoolDbContext))]
-        [UseOffsetPaging(IncludeTotalCount = true, DefaultPageSize = 10)]
-        [UseProjection]
-        [UseFiltering(typeof(CourseFilterType))]
-        [UseSorting(typeof(CourseSortType))]
-        public IQueryable<CourseType> GetCoursesAsync([ScopedService] SchoolDbContext repository)
+        public async Task<List<ISearchResultType>> Search(string term, [ScopedService] SchoolDbContext context)
         {
-            return repository.Courses.Select(c => new CourseType()
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Subject = c.Subject,
-                InstructorId = c.InstructorId,
-                CreatorId = c.CreatorId,
-            });
+            var courses = await context.Courses
+                .Where(c => c.Name.ToLower().Contains(term.ToLower()))
+                .Select(c => new CourseType()
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Subject = c.Subject,
+                    InstructorId = c.InstructorId,
+                    CreatorId = c.CreatorId,
+                }).ToListAsync();
+
+            var instructors = await context.Instructors
+                .Where(i => i.FirstName.ToLower().Contains(term.ToLower()) || i.LastName.ToLower().Contains(term.ToLower()))
+                .Select(i => new InstructorType()
+                {
+                    Id = i.Id,
+                    FirstName = i.FirstName,
+                    LastName = i.LastName,
+                    Salary = i.Salary
+                }).ToListAsync();
+
+            var result = new List<ISearchResultType>().Concat(courses).Concat(instructors).ToList();
+
+            return result;
         }
 
-
-        public async Task<CourseType> GetCourseByIdAsync(Guid id)
-        {
-            var course = await _coursesRepository.GetCourseByIdAsync(id);
-
-            return new CourseType()
-            {
-                Id = course.Id,
-                Name = course.Name,
-                Subject = course.Subject,
-                InstructorId = course.InstructorId,
-                CreatorId = course.CreatorId,
-
-            };
-        }
     }
 }
