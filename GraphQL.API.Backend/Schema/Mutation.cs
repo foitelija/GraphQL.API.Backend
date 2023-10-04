@@ -2,8 +2,10 @@
 using FirebaseAdminAuthentication.DependencyInjection.Models;
 using GraphQL.API.Backend.DTOs;
 using GraphQL.API.Backend.Interfaces;
+using GraphQL.API.Backend.Middlewares;
 using GraphQL.API.Backend.Models;
 using GraphQL.API.Backend.Validators;
+using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Subscriptions;
 using System.Security.Claims;
@@ -22,7 +24,11 @@ namespace GraphQL.API.Backend.Schema
         }
 
         //[Authorize]
-        public async Task<CourseResult> CreateCourse([UseFluentValidation, UseValidator<CourseTypeInputValidator>]CourseInputType courseInput, [Service] ITopicEventSender topicEventSender, ClaimsPrincipal claimsPrincipal)
+        [UseUser]
+        public async Task<CourseResult> CreateCourse(
+            [UseFluentValidation, UseValidator<CourseTypeInputValidator>]CourseInputType courseInput,
+            [Service] ITopicEventSender topicEventSender,
+            [GlobalState("User")]User user)
         {
             //await Validate(courseInput); - мануальная валидация, есть пакет для этого - AppAny.HotChocolate.FluentValidation 
 
@@ -31,7 +37,7 @@ namespace GraphQL.API.Backend.Schema
                 Name = courseInput.Name,
                 Subject = courseInput.Subject,
                 InstructorId = courseInput.InstructorId,
-                CreatorId = claimsPrincipal.FindFirstValue(FirebaseUserClaimType.USERNAME)
+                CreatorId = user.Id
             };
 
             courseDTO = await _coursesRepository.CreateCourseAsync(courseDTO);
